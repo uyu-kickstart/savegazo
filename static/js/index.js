@@ -93,6 +93,7 @@
     saveRequest({
       data: dataUrl.replace(/^.*,/, ''),
       ch: ch,
+      handwrite: handwrite,
     }, function saveCallback(err, req) {
       clear();
       console.log(err, req);
@@ -125,7 +126,7 @@
     ctx.lineWidth = 1;
     ctx.strokeStyle = '#f00';
     ctx.beginPath();
-    ctx.arc(x, y, lineWidth + 2, 0, Math.PI*2, true);
+    ctx.arc(x, y, lineWidth / 2, 0, Math.PI*2, true);
     ctx.stroke();
     ctx.restore();
   }
