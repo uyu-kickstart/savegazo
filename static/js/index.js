@@ -1,74 +1,133 @@
 (function (global) {
   'use strict';
 
+  // constants
   var
-  W = 300, H = 300;
+  W = 300, H = 300,
+  DEFAULT_LINE_WIDTH = 10,
+  CURVE_DETECT = 80 / 180 * Math.PI, // 80 degree over
+  SAME_DISTANCE = 10;
 
+  // global? variables
   var
+  // DOM and canvas context
+  text = document.getElementById('text'),
+  canvas = document.getElementById('canvas'),
+  ctx = canvas.getContext('2d'),
+
+  // status
   down = false,
   x = 0, y = 0,
-  canvas = document.getElementById('canvas'),
-  ctx = canvas.getContext('2d');
+  curve = NaN,
+  handwrite = [];
 
-  ctx.lineWidth = 10;
+
+  // context's default settings
+  ctx.lineWidth = DEFAULT_LINE_WIDTH;
   ctx.lineCap = 'round';
-  clear();
 
-  canvas.addEventListener('mousedown', function (e) {
+  // draw events
+
+  // mouse down = start drawing a line
+  canvas.addEventListener('mousedown', function mousedown(e) {
     // console.log('mousedown');
     down = true;
     x = e.offsetX; y = e.offsetY;
-  });
-  canvas.addEventListener('mouseup', function (e) {
-    // console.log('mouseup');
-    down = false;
-  });
-  canvas.addEventListener('mousemove', function (e) {
-    // console.log('mousemove: x=' + e.offsetX + ' y=' + e.offsetY);
-    if (down) {
-      line(e.offsetX, e.offsetY);
-    }
+    curve = NaN;
+    handwrite.push([]);
+    addCurve(x, y);
   });
 
-  document.getElementById('w_up').addEventListener('click', function () {
+  // mouse up = stop drawing a line
+  canvas.addEventListener('mouseup', function mouseup(e) {
+    // console.log('mouseup');
+    down = false;
+    addCurve(x, y);
+
+    x = 0; y = 0;
+    curve = NaN;
+  });
+
+  canvas.addEventListener('mousemove', function mousemove(e) {
+    // console.log('mousemove: x=' + e.offsetX + ' y=' + e.offsetY);
+    if (down) {
+      var
+      // next x/y/curve
+      nx = e.offsetX, ny = e.offsetY,
+      ncurve;
+
+      if (!(nx === x || ny === y)) {
+        line(nx, ny);
+        ncurve = Math.atan2(ny - y, nx - x);
+        if (Math.abs(ncurve - curve) >= CURVE_DETECT) {
+          addCurve(x, y);
+        }
+        x = nx; y = ny;
+        curve = ncurve;
+      }
+    }
+    e.stopPropagation();
+  });
+
+  // control the line width
+  document.getElementById('w_up').addEventListener('click', function w_upClick() {
     ctx.lineWidth = ctx.lineWidth + 1;
     // console.log('lineWidth=' + ctx.lineWidth);
   });
-  document.getElementById('w_down').addEventListener('click', function () {
+  document.getElementById('w_down').addEventListener('click', function w_downClick() {
     ctx.lineWidth = Math.max(1, ctx.lineWidth - 1);
     // console.log('lineWidth=' + ctx.lineWidth);
   });
 
-  document.getElementById('clear').addEventListener('click', function () {
+  // clear canvas and status
+  document.getElementById('clear').addEventListener('click', function clearClick() {
     clear();
-    document.getElementById('text').value = '';
   });
 
-  document.getElementById('save').addEventListener('click', function () {
+  // save an image and information(s)
+  document.getElementById('save').addEventListener('click', function saveClick() {
     var
     dataUrl = canvas.toDataURL('image/png'),
-    ch = document.getElementById('text').value;
+    ch = text.value;
 
     saveRequest({
       data: dataUrl.replace(/^.*,/, ''),
       ch: ch,
-    }, function (err, req) {
+    }, function saveCallback(err, req) {
       clear();
-      document.getElementById('text').value = '';
-
       console.log(err, req);
     });
   });
 
+
+  // implementation of a process `clear canvas and status'
   function clear() {
     ctx.clearRect(0, 0, W, H);
+    text.value = '';
+    handwrite = [];
+    x = 0; y = 0;
+    curve = NaN;
+    down = false;
   }
 
   function line(nx, ny) {
     ctx.beginPath();
     ctx.moveTo(x, y);
-    ctx.lineTo(x = nx, y = ny);
+    ctx.lineTo(nx, ny);
     ctx.stroke();
+  }
+
+  function point(x, y) {
+    var
+    lineWidth = ctx.lineWidth;
+
+    ctx.save();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = '#f00';
+    ctx.beginPath();
+    ctx.arc(x, y, lineWidth + 2, 0, Math.PI*2, true);
+    ctx.stroke();
+    ctx.restore();
   }
 
   function saveRequest(json, callback) {
@@ -91,6 +150,37 @@
 
     req.send(JSON.stringify(json));
 
+  }
+
+  // handwrite utility
+
+  function addCurve(x, y) {
+    var
+    line = handwrite[handwrite.length - 1],
+    xy = [x, y];
+
+    if (line.length === 0 || euclidDistance(line[line.length - 1], xy) > SAME_DISTANCE) {
+      console.log('curve: x=' + x + ' y=' + y);
+      point(x, y);
+
+      line.push(xy);
+    }
+  }
+
+
+  // another utility
+
+  // get a last element of the array.
+  function last(arr) {
+    return arr[arr.length - 1];
+  }
+
+  // get a euclid distance between A and B
+  function euclidDistance(ptA, ptB) {
+    return Math.sqrt(
+      (ptA[0] - ptB[0]) * (ptA[0] - ptB[0]) +
+      (ptA[1] - ptB[1]) * (ptA[1] - ptB[1])
+    );
   }
 
 })((this || 0).self || global);
