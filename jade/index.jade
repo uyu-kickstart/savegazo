@@ -1,0 +1,21 @@
+doctype html
+
+html
+  head
+    meta(charset='utf-8')
+    title savegazo
+    link(rel='stylesheet', href='css/index.css')
+  body
+    h1 savegazo
+    canvas#canvas(width=300, height=300)
+    ul
+      li
+        | 文字サイズ
+        button#w_up +
+        button#w_down -
+      li
+        button#clear クリア
+      li
+        input#text(type='text', size=4, placeholder='文字')
+        button#save 保存
+    script(src='js/index.js')
