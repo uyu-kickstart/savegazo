@@ -2,6 +2,9 @@
 
 ```console
 $ npm install
-$ node app.js
-http://localhost:3000/
+$ mkdir img
+$ echo "{}" > img/meta.json
+$ npm start
 ```
+
+and open http://localhost:3000
