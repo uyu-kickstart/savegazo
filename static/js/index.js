@@ -53,6 +53,9 @@
       data: dataUrl.replace(/^.*,/, ''),
       ch: ch,
     }, function (err, req) {
+      clear();
+      document.getElementById('text').value = '';
+
       console.log(err, req);
     });
   });
