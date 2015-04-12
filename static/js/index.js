@@ -27,33 +27,81 @@
   ctx.lineCap = 'round';
 
   // draw events
+  (function () {
 
-  // mouse down = start drawing a line
-  canvas.addEventListener('mousedown', function mousedown(e) {
-    // console.log('mousedown');
-    down = true;
-    x = e.offsetX; y = e.offsetY;
-    curve = NaN;
-    handwrite.push([]);
-    addCurve(x, y);
-  });
+    if ('ontouchstart' in document) {
+      // smartphone and touch supported devices
 
-  // mouse up = stop drawing a line
-  canvas.addEventListener('mouseup', function mouseup(e) {
-    // console.log('mouseup');
-    down = false;
-    addCurve(x, y);
+      canvas.addEventListener('touchstart', function touchstart(e) {
+        var
+        touch;
 
-    x = 0; y = 0;
-    curve = NaN;
-  });
+        if (e.targetTouches.length === 1) {
+          touch = e.targetTouches[0];
+          start(touch.pageX - canvas.offsetLeft, touch.pageY - canvas.offsetTop);
+        }
+        e.stopPropagation();
+        e.preventDefault();
+      });
 
-  canvas.addEventListener('mousemove', function mousemove(e) {
-    // console.log('mousemove: x=' + e.offsetX + ' y=' + e.offsetY);
-    if (down) {
+      canvas.addEventListener('touchmove', function touchmove(e) {
+        var
+        touch;
+
+        if (down && e.targetTouches.length === 1) {
+          touch = e.targetTouches[0];
+          move(touch.pageX - canvas.offsetLeft, touch.pageY - canvas.offsetTop);
+        }
+        e.stopPropagation();
+        e.preventDefault();
+      });
+
+      canvas.addEventListener('touchend', function touchend(e) {
+        end();
+        e.stopPropagation();
+        e.preventDefault();
+      });
+
+    } else {
+      // browser
+
+      // mouse down = start drawing a line
+      canvas.addEventListener('mousedown', function mousedown(e) {
+        // console.log('mousedown');
+        start(e.offsetX, e.offsetY);
+        e.stopPropagation();
+        e.preventDefault();
+      });
+
+      canvas.addEventListener('mousemove', function mousemove(e) {
+        // console.log('mousemove: x=' + e.offsetX + ' y=' + e.offsetY);
+        if (down) {
+          move(e.offsetX, e.offsetY);
+        }
+        e.stopPropagation();
+        e.preventDefault();
+      });
+
+      // mouse up = stop drawing a line
+      canvas.addEventListener('mouseup', function mouseup(e) {
+        // console.log('mouseup');
+        end();
+        e.stopPropagation();
+        e.preventDefault();
+      });
+    }
+
+    function start(nx, ny) {
+      down = true;
+      x = nx; y = ny;
+      curve = NaN;
+      handwrite.push([]);
+      addCurve(x, y);
+    }
+
+    function move(nx, ny) {
       var
-      // next x/y/curve
-      nx = e.offsetX, ny = e.offsetY,
+      // next curve
       ncurve;
 
       if (!(nx === x || ny === y)) {
@@ -66,8 +114,15 @@
         curve = ncurve;
       }
     }
-    e.stopPropagation();
-  });
+
+    function end() {
+      down = false;
+      addCurve(x, y);
+      x = 0; y = 0;
+      curve = NaN;
+    }
+
+  })();
 
   // control the line width
   document.getElementById('w_up').addEventListener('click', function w_upClick() {
@@ -126,7 +181,7 @@
     ctx.lineWidth = 1;
     ctx.strokeStyle = '#f00';
     ctx.beginPath();
-    ctx.arc(x, y, lineWidth / 2, 0, Math.PI*2, true);
+    ctx.arc(x, y, lineWidth, 0, Math.PI*2, true);
     ctx.stroke();
     ctx.restore();
   }
@@ -161,7 +216,7 @@
     xy = [x, y];
 
     if (line.length === 0 || euclidDistance(line[line.length - 1], xy) > SAME_DISTANCE) {
-      console.log('curve: x=' + x + ' y=' + y);
+      //console.log('curve: x=' + x + ' y=' + y);
       point(x, y);
 
       line.push(xy);
