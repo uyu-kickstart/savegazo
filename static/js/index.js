@@ -5,7 +5,7 @@
   var
   W = 300, H = 300,
   DEFAULT_LINE_WIDTH = 10,
-  CURVE_DETECT = 80 / 180 * Math.PI, // 80 degree over
+  CURVE_DETECT = 30 / 180 * Math.PI, // 80 degree over
   SAME_DISTANCE = 10;
 
   // global? variables
@@ -217,7 +217,7 @@
 
     if (line.length === 0 || euclidDistance(line[line.length - 1], xy) > SAME_DISTANCE) {
       //console.log('curve: x=' + x + ' y=' + y);
-      point(x, y);
+      //point(x, y);
 
       line.push(xy);
     }
