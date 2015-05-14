@@ -67,16 +67,16 @@
 
       // mouse down = start drawing a line
       canvas.addEventListener('mousedown', function mousedown(e) {
-        // console.log('mousedown');
-        start(e.offsetX, e.offsetY);
+        //console.log('mousedown');
+        start(e.offsetX || (e.pageX - canvas.offsetLeft), e.offsetY || (e.pageY - canvas.offsetTop));
         e.stopPropagation();
         e.preventDefault();
       });
 
       canvas.addEventListener('mousemove', function mousemove(e) {
-        // console.log('mousemove: x=' + e.offsetX + ' y=' + e.offsetY);
+        //console.log('mousemove: x=' + e.offsetX + ' y=' + e.offsetY);
         if (down) {
-          move(e.offsetX, e.offsetY);
+          move(e.offsetX || (e.pageX - canvas.offsetLeft), e.offsetY || (e.pageY - canvas.offsetTop));
         }
         e.stopPropagation();
         e.preventDefault();
@@ -84,7 +84,7 @@
 
       // mouse up = stop drawing a line
       canvas.addEventListener('mouseup', function mouseup(e) {
-        // console.log('mouseup');
+        //console.log('mouseup');
         end();
         e.stopPropagation();
         e.preventDefault();
